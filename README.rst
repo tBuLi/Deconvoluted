@@ -51,7 +51,7 @@ Performing multidimensional transforms is just as easy. For example:
 
     F_pq, p, q = fourier_transform(f_xy, x, y)
 
-Transforms both :math:`x` and :math:`y` at the same time.
+transforms both :math:`x` and :math:`y` at the same time.
 Transforming only one of the two variables can be done simply by setting those
 that shouldn't transform to ``None``:
 
@@ -67,7 +67,7 @@ To perform a Laplace transform the syntax is slightly different:
 
 .. code-block:: python
 
-    F, s = laplace_transform(f, x, s=s)
+    F = laplace_transform(f, x, s=s)
 
 This is because we need to know beforehand at which :math:`s` you want to have
 the transform evaluated.
