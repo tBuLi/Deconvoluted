@@ -35,7 +35,8 @@ def fourier_transform(f, *vars, convention=signal):
     """
     axes = determine_axes(f, *vars)
 
-    F = np.fft.fftshift(np.fft.fftn(f, axes=axes))
+    F = np.fft.fftn(f, axes=axes)
+    F = np.fft.fftshift(F, axes=axes)
     ks = []
     for x in vars:
         if x is None:
@@ -61,7 +62,8 @@ def inverse_fourier_transform(F, *vars, convention=signal):
     """
     axes = determine_axes(F, *vars)
 
-    f = np.fft.ifftn(np.fft.ifftshift(F), axes=axes)
+    f = np.fft.ifftshift(F, axes=axes)
+    f = np.fft.ifftn(f, axes=axes)
     xs = []
     for k in vars:
         if k is None:
