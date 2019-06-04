@@ -51,7 +51,7 @@ Performing multidimensional transforms is just as easy. For example:
 
     F_pq, p, q = fourier_transform(f_xy, x, y)
 
-Transforms both :math:`x` and :math:`y` at the same time.
+transforms both :math:`x` and :math:`y` at the same time.
 Transforming only one of the two variables can be done simply by setting those
 that shouldn't transform to ``None``:
 
