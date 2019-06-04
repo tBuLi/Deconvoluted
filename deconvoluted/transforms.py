@@ -87,6 +87,3 @@ def inverse_fourier_transform(F, *vars, convention=signal):
         x = np.fft.fftshift(x)  # Go from -inf to inf
         xs.append(x)
     return (f, *xs)
-
-def laplace_tranform(f, *vars, s):
-    raise NotImplementedError('Laplace transforms are not yet supported.')

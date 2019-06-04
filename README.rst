@@ -59,17 +59,3 @@ that shouldn't transform to ``None``:
 
     F_py, p = fourier_transform(f_xy, x, None)
     F_xq, q = fourier_transform(f_xy, None, y)
-
-Laplace Transform
-~~~~~~~~~~~~~~~~~
-
-To perform a Laplace transform the syntax is slightly different:
-
-.. code-block:: python
-
-    F = laplace_transform(f, x, s=s)
-
-This is because we need to know beforehand at which :math:`s` you want to have
-the transform evaluated.
-
-See the documentation for more examples!
