@@ -1,5 +1,5 @@
-Welcome to Deconvoluted's documentation!
-======================================
+Welcome to this Deconvoluted documentation!
+===========================================
 
 .. toctree::
    :maxdepth: 2
@@ -8,6 +8,7 @@ Welcome to Deconvoluted's documentation!
    readme
    installation
    usage
+   examples/index
    modules
    contributing
    authors
