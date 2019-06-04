@@ -8,6 +8,14 @@ import numpy as np
 Convention = namedtuple('Convention', ['a', 'b'])
 signal = Convention(a=0, b=- 2 * np.pi)  # Signal processing
 
+def determine_axes(f, *vars):
+    if len(vars) != len(f.shape):
+        raise TypeError('The number of variables has to match the dimension of '
+                        '`f`. Use `None` for axis with respect to which no '
+                        'transform should be performed.')
+
+    return [i for i, var in enumerate(vars) if var is not None]
+
 def fourier_transform(f, *vars, convention=signal):
     """
     Performs the multidimensional Fourier transform of
@@ -25,9 +33,13 @@ def fourier_transform(f, *vars, convention=signal):
     :return: :math:`F(k_1, \ldots, k_n)`, the Fourier transform of
         :math:`f(x_1, \ldots, x_n)`.
     """
-    F = np.fft.fftshift(np.fft.fft(f))
+    axes = determine_axes(f, *vars)
+
+    F = np.fft.fftshift(np.fft.fftn(f, axes=axes))
     ks = []
     for x in vars:
+        if x is None:
+            continue
         d = x[1]-x[0]
         k = np.fft.fftfreq(len(x), d=d)
         k = np.fft.fftshift(k)  # Go from -inf to inf
@@ -47,9 +59,13 @@ def inverse_fourier_transform(F, *vars, convention=signal):
     :return: :math:`f(x_1, \ldots, x_n)`, the inverse fourier transform of
         :math:`F(k_1, \ldots, k_n)`
     """
-    f = np.fft.ifft(np.fft.ifftshift(F))
+    axes = determine_axes(F, *vars)
+
+    f = np.fft.ifftn(np.fft.ifftshift(F), axes=axes)
     xs = []
     for k in vars:
+        if k is None:
+            continue
         d = k[1] - k[0]
         x = np.fft.fftfreq(len(k), d=d)
         x = np.fft.fftshift(x)  # Go from -inf to inf
