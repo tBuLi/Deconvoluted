@@ -67,7 +67,7 @@ To perform a Laplace transform the syntax is slightly different:
 
 .. code-block:: python
 
-    F, s = laplace_transform(f, x, s=s)
+    F = laplace_transform(f, x, s=s)
 
 This is because we need to know beforehand at which :math:`s` you want to have
 the transform evaluated.
