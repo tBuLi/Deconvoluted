@@ -22,14 +22,27 @@ def fourier_transform(f, *vars, convention=signal):
     :math:`f(x_1, \ldots, x_n)` with respect to any number of variables
     :math:`x_i`.
 
-    Example::
+    Examples::
 
-         F, k = fourier_transform(f, x)
+        # 1D transform
+        F, k = fourier_transform(f, x)
+
+        # 2D transform
+        F_pq, p, q = fourier_transform(f_xy, x, y)
+
+        # 2D function, transform only 1 axis
+        F_py, p = fourier_transform(f_xy, x, None)
 
     :param f: array representing a function :math:`f(x_1, \ldots, x_n)`
-    :param vars: list of axis w.r.t. which the Fourier transform has to be
-        computed.
-    :param convention: The Fourier convention to be used.
+    :param vars: list of :math:`x_i` w.r.t. which the Fourier transform has to
+        be computed. In case of multi-dimensional functions :math:`f` the
+        number of ``vars`` has to match the dimension of ``f``. Any axis that
+        should be ignored should be provided as ``None``::
+
+            F_py, p = fourier_transform(f_xy, x, None)
+
+    :param convention: The Fourier convention to be used. :math:`a=0` and
+        :math:`b=- 2 \pi` by default, which is the signal processing standard.
     :return: :math:`F(k_1, \ldots, k_n)`, the Fourier transform of
         :math:`f(x_1, \ldots, x_n)`.
     """
@@ -55,8 +68,9 @@ def inverse_fourier_transform(F, *vars, convention=signal):
 
     :param F: Fourier transform :math:`F(k_1, \ldots, k_n)`
         of :math:`f(x_1, \ldots, x_n)`.
-    :param vars: Any number of :math:`k` variables.
-    :param convention:
+    :param vars: Any number of :math:`k` variables or ``None``.
+    :param convention: The Fourier convention to be used. :math:`a=0` and
+        :math:`b=- 2 \pi` by default, which is the signal processing standard.
     :return: :math:`f(x_1, \ldots, x_n)`, the inverse fourier transform of
         :math:`F(k_1, \ldots, k_n)`
     """
