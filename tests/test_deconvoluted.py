@@ -8,7 +8,7 @@ import unittest
 
 import numpy as np
 
-from deconvoluted import fourier_transform, inverse_fourier_transform, laplace_tranform
+from deconvoluted import fourier_transform, inverse_fourier_transform
 
 class TestDeconvoluted(unittest.TestCase):
     """Tests for `deconvoluted` package."""
