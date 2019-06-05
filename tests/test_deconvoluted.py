@@ -9,6 +9,8 @@ import unittest
 import numpy as np
 
 from deconvoluted import fourier_transform, inverse_fourier_transform
+from deconvoluted.conventions import conventions, Convention
+from deconvoluted.transforms import determine_norm
 
 class TestDeconvoluted(unittest.TestCase):
     """Tests for `deconvoluted` package."""
@@ -23,26 +25,17 @@ class TestDeconvoluted(unittest.TestCase):
         F_pq, p, q = fourier_transform(f_xy, x, y)
         self.ft_data2d = (F_pq, p, q)
 
-    def tearDown(self):
-        """Tear down test fixtures, if any."""
-
-    def test_fft_1d(self):
-        """
-        Test the FFT capabilities.
-        """
-        # Number of sample points
-        N = 60
-        # sample spacing
-        T = 1.0 / 800.0
+        # Generate 1D data
+        N = 60  # Number of sample points
+        T = 1.0 / 800.0  # sample spacing
         x = np.linspace(- N * T, N * T, 2 * N + 1)  # (- 0.75 , 0.75)
         # Place a peak at 50 Hz and 80 Hz.
-        y = np.sin(50.0 * 2.0 * np.pi * x) + 0.5 * np.sin(80.0 * 2.0 * np.pi * x)
+        y = np.sin(50.0 * 2.0 * np.pi * x) + 0.5 * np.sin(
+            80.0 * 2.0 * np.pi * x)
+        self.data1d = (y, x)
 
-        F, k = fourier_transform(y, x)
-        y_new, x_new = inverse_fourier_transform(F, k)
-        np.testing.assert_almost_equal(x, x_new)
-        np.testing.assert_almost_equal(y, y_new.real)
-        np.testing.assert_almost_equal(np.zeros_like(y), y_new.imag)
+    def tearDown(self):
+        """Tear down test fixtures, if any."""
 
     def test_ifft_2d_simultanious(self):
         """
@@ -120,3 +113,39 @@ class TestDeconvoluted(unittest.TestCase):
         np.testing.assert_almost_equal(f_xy, f_xy_new.real)
         np.testing.assert_almost_equal(np.zeros_like(f_xy), f_xy_new.imag)
 
+    def test_conventions(self):
+        y, x = self.data1d
+        F_signal, k_signal = fourier_transform(y, x)
+
+        # Test Plancherel theorem for default settings
+        self.assertAlmostEqual(np.linalg.norm(y)**2,
+                               np.linalg.norm(F_signal)**2)
+
+        # Add something ridiculous purely to test our implementation
+        conventions.append(Convention(a=10, b=6))
+        for convention in conventions:
+            # Inner product norm, see Plancherel section here:
+            # https://www.johndcook.com/blog/fourier-theorems/
+            inner_norm = 1 / determine_norm(convention)**2
+
+            F, k = fourier_transform(y, x, convention=convention)
+            y_new, x_new = inverse_fourier_transform(F, k, convention=convention)
+
+            # Test Plancherel theorem
+            self.assertAlmostEqual(
+                np.linalg.norm(y)**2 / np.linalg.norm(F)**2 / inner_norm, 1.0
+            )
+            self.assertAlmostEqual(
+                np.linalg.norm(y_new)**2 / np.linalg.norm(F)**2 / inner_norm, 1.0
+            )
+
+            # Make sure we converted the frequency axis correctly
+            np.testing.assert_almost_equal(k_signal, k * convention.b / (- 2 * np.pi))
+            # F should be scaled properly
+            norm = np.sqrt(np.abs(convention.b) / (2 * np.pi)**(1 - convention.a))
+            np.testing.assert_almost_equal(F_signal, F / norm)
+
+            # After ifft + fft, we should be back to the start
+            np.testing.assert_almost_equal(x, x_new)
+            np.testing.assert_almost_equal(y, y_new.real)
+            np.testing.assert_almost_equal(np.zeros_like(y), y_new.imag)
