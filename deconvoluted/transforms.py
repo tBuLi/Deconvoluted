@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
-
 import numpy as np
 
-# Set the fourier convention as described in
-# http://mathworld.wolfram.com/FourierTransform.html
-Convention = namedtuple('Convention', ['a', 'b'])
-signal = Convention(a=0, b=- 2 * np.pi)  # Signal processing
+from deconvoluted.conventions import Convention, signal
 
 def determine_axes(f, *vars):
+    """
+    Determine the axes along which the FT should be performed.
+    """
     if len(vars) != len(f.shape):
         raise TypeError('The number of variables has to match the dimension of '
                         '`f`. Use `None` for axis with respect to which no '
                         'transform should be performed.')
 
     return [i for i, var in enumerate(vars) if var is not None]
+
+def determine_norm(convention):
+    """
+    Determine the normalization constant for this ``convention``.
+
+    :param convention: tuple representing :math:`(a, b)`.
+    :return: normalization constant.
+    """
+    return np.sqrt(np.abs(convention.b) / (2 * np.pi) ** (1 - convention.a))
 
 def fourier_transform(f, *vars, convention=signal):
     """
@@ -46,10 +53,12 @@ def fourier_transform(f, *vars, convention=signal):
     :return: :math:`F(k_1, \ldots, k_n)`, the Fourier transform of
         :math:`f(x_1, \ldots, x_n)`.
     """
+    convention = Convention(*convention)
     axes = determine_axes(f, *vars)
 
-    F = np.fft.fftn(f, axes=axes)
+    F = np.fft.fftn(f, axes=axes, norm='ortho')
     F = np.fft.fftshift(F, axes=axes)
+    F *= determine_norm(convention)  # do the correct normalization
     ks = []
     for x in vars:
         if x is None:
@@ -57,6 +66,7 @@ def fourier_transform(f, *vars, convention=signal):
         d = x[1]-x[0]
         k = np.fft.fftfreq(len(x), d=d)
         k = np.fft.fftshift(k)  # Go from -inf to inf
+        k *= - (2 * np.pi) / convention.b  # correct convention
         ks.append(k)
     return (F, *ks)
 
@@ -74,10 +84,13 @@ def inverse_fourier_transform(F, *vars, convention=signal):
     :return: :math:`f(x_1, \ldots, x_n)`, the inverse fourier transform of
         :math:`F(k_1, \ldots, k_n)`
     """
+    convention = Convention(*convention)  # Make sure we have a Convention
     axes = determine_axes(F, *vars)
 
     f = np.fft.ifftshift(F, axes=axes)
-    f = np.fft.ifftn(f, axes=axes)
+    f = np.fft.ifftn(f, axes=axes, norm='ortho')
+    f *= determine_norm(convention) / ((2 * np.pi)**convention.a)  # do normalization
+    f *= (2 * np.pi) / np.abs(convention.b)
     xs = []
     for k in vars:
         if k is None:
@@ -85,5 +98,6 @@ def inverse_fourier_transform(F, *vars, convention=signal):
         d = k[1] - k[0]
         x = np.fft.fftfreq(len(k), d=d)
         x = np.fft.fftshift(x)  # Go from -inf to inf
+        x *= - (2 * np.pi) / convention.b  # correct convention
         xs.append(x)
     return (f, *xs)
